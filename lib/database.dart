@@ -69,7 +69,7 @@ class DatabaseMethods {
     return 10000;
   }
 
-  static Future<List<Project>> readAllAsEntry(
+  static Future<List<Project>> readAllAsProject(
       ProjectDatabaseHelper helper) async {
     List<ProjectEntry> entries = await readAll(helper);
     List<Project> projects = [];
@@ -77,11 +77,7 @@ class DatabaseMethods {
 
     for (int i = 0; i < entries.length; i++) {
       curr = entries[i];
-      projects.add(Project(
-          id: curr.id,
-          name: curr.name,
-          countsString: curr.words,
-          target: curr.target));
+      projects.add(curr.toProject());
     }
 
     return projects;
@@ -126,6 +122,10 @@ class ProjectEntry {
   @override
   String toString() {
     return '$id ' + name + ' WC $words, target $target';
+  }
+
+  Project toProject() {
+    return Project(id: id, name: name, countsString: words, target: target);
   }
 }
 
