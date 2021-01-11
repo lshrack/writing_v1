@@ -3,6 +3,7 @@ import 'database.dart';
 import 'count_storage.dart';
 import 'dart:async';
 import 'package:validators/validators.dart';
+import 'sprint_page.dart';
 
 //Variables to be accessed from all classes
 class Globals {
@@ -166,6 +167,8 @@ class Project {
     if (which == 3) {
       wc = wc + int.parse(newVal);
 
+      if (wc < 0) wc = 0;
+
       counts.editCount(wc);
 
       countsString = counts.toString();
@@ -249,7 +252,8 @@ class _ProjectPageState extends State<ProjectPage> {
                 ]),
                 //Target Wordcount - label and edit button
                 Row(mainAxisSize: MainAxisSize.min, children: [
-                  Text("Target Word Count: ${widget.project.target}"),
+                  Text(
+                      "Target Word Count: ${widget.project.target == -1 ? "Not Set" : widget.project.target}"),
                   IconButton(
                       icon: Icon(Icons.edit),
                       onPressed: () {
@@ -259,7 +263,9 @@ class _ProjectPageState extends State<ProjectPage> {
                           curr: widget.project,
                           hint: "Target Wordcount",
                           title: "Edit Target",
-                          currVal: widget.project.target.toString(),
+                          currVal: widget.project.target == -1
+                              ? ""
+                              : widget.project.target.toString(),
                           which: 2,
                           intInput: true,
                         ).then((onValue) {
@@ -300,6 +306,7 @@ class _ProjectPageState extends State<ProjectPage> {
                 FlatButton(
                   onPressed: () {
                     print("Sprint Tapped");
+                    sprintPage(context, widget.project);
                   },
                   child: Text("Sprint"),
                 ),
@@ -368,6 +375,17 @@ class _ProjectPageState extends State<ProjectPage> {
               context, curr, title, hint, currVal, intInput, buttonText, which);
         });
   }
+
+  //Method that builds sprint page, waits for it to return, and then sets state
+  Future<void> sprintPage(BuildContext context, Project project,
+      {added = false}) async {
+    final result = await Navigator.of(context)
+        .push(MaterialPageRoute<bool>(builder: (BuildContext context) {
+      return SprintPage(project);
+    }));
+
+    setState(() {});
+  }
 }
 
 //Stateful widget for creating Dialogs
@@ -420,6 +438,8 @@ class _GenericDialogState extends State<GenericDialog> {
                 validInput = false;
               else if (widget.intInput && !isNumeric(text))
                 validInput = false;
+              else if (int.parse(text) < 0)
+                validInput = false;
               else
                 validInput = true;
 
@@ -452,7 +472,7 @@ class _GenericDialogState extends State<GenericDialog> {
   @override
   void initState() {
     _controller = TextEditingController(text: widget.currVal);
-    validInput = true;
+    validInput = widget.currVal == "" ? false : true;
     super.initState();
   }
 }
